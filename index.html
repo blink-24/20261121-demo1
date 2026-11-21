@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부정·인용 표현 마스터 학습지</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Pretendard & Noto Sans KR -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+        }
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- 상단 헤더 -->
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-20">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-2.5">
+                <span class="bg-indigo-500 p-2 rounded-xl text-xl shadow-inner">📝</span>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight">화법과 언어 · 개념 탐구 학습지</h1>
+                    <p class="text-xs text-indigo-200">부정 표현과 인용 표현의 제약 및 전환 원리</p>
+                </div>
+            </div>
+            
+            <!-- 현재 점수 및 상태 배지 -->
+            <div class="flex items-center gap-3 bg-indigo-700/70 px-4 py-2 rounded-2xl border border-indigo-400/30">
+                <div class="text-right">
+                    <span class="text-xs text-indigo-200 block">퀴즈 달성 점수</span>
+                    <span id="score-display" class="text-lg font-black text-amber-300">0점</span>
+                    <span class="text-xs text-indigo-300">/ 100점</span>
+                </div>
+                <div id="unlock-badge" class="flex items-center gap-1.5 bg-slate-800/80 text-slate-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">
+                    <span>🔒</span>
+                    <span>개념 노트 잠김</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 내비게이션 -->
+        <div class="max-w-4xl mx-auto px-4 flex gap-2 pt-1">
+            <button id="tab-btn-2" onclick="switchTab(2)" class="flex-1 sm:flex-none px-5 py-3 rounded-t-xl font-bold text-sm bg-slate-50 text-indigo-700 shadow-sm transition-all flex items-center justify-center gap-2">
+                <span>✍️</span>
+                <span>탭 2. 빈칸 추론 퀴즈 (90점 도전)</span>
+            </button>
+            <button id="tab-btn-1" onclick="switchTab(1)" class="flex-1 sm:flex-none px-5 py-3 rounded-t-xl font-bold text-sm bg-indigo-700/60 text-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">
+                <span id="tab-1-icon">🔒</span>
+                <span>탭 1. 전체 학습 내용 정리</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-6">
+        
+        <!-- 알림/메시지 토스트 (alert 대체) -->
+        <div id="toast-box" class="hidden fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl text-sm font-medium flex items-center gap-2.5 fade-in max-w-md w-[90%] justify-center text-center">
+            <span id="toast-icon">💡</span>
+            <span id="toast-msg">메시지 내용</span>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 탭 2: 빈칸 추론 퀴즈 (기본 활성화 탭) -->
+        <!-- ========================================== -->
+        <section id="tab-content-2" class="space-y-6 fade-in">
+            <!-- 안내 배너 -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <span class="inline-block px-2.5 py-1 bg-indigo-100 text-indigo-700 font-bold text-xs rounded-lg mb-1.5">학습 미션</span>
+                    <h2 class="text-base sm:text-lg font-bold text-slate-800">학습지의 핵심 빈칸을 추론하여 채워보세요!</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">총 15문항 중 <strong class="text-indigo-600">90점(14문항) 이상</strong>을 달성하면 <strong>[탭 1. 전체 학습 내용 정리]</strong>가 열립니다. 틀리면 힌트가 제공됩니다.</p>
+                </div>
+                <button onclick="resetQuiz()" class="shrink-0 px-3.5 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                    🔄 퀴즈 초기화
+                </button>
+            </div>
+
+            <!-- 퀴즈 카드들이 동적으로 렌더링되는 컨테이너 -->
+            <div id="quiz-container" class="space-y-5"></div>
+
+            <!-- 하단 결과 요약 카드 -->
+            <div class="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6 rounded-2xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h3 class="font-bold text-lg">현재 학습 진행률</h3>
+                    <p id="progress-text" class="text-sm text-indigo-100 mt-1">15개의 빈칸 중 0개를 해결했습니다. (현재 0점)</p>
+                </div>
+                <button id="go-tab1-btn" onclick="switchTab(1)" class="px-5 py-3 bg-white/20 text-white/70 font-bold text-sm rounded-xl cursor-not-allowed transition flex items-center gap-2">
+                    <span>🔒 90점 달성 시 개념 노트 열림</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 탭 1: 전체 학습 내용 정리 (90점 이상 잠금 해제) -->
+        <!-- ========================================== -->
+        <section id="tab-content-1" class="hidden space-y-6 fade-in">
+            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🎉</span>
+                    <div>
+                        <h2 class="font-bold text-emerald-900 text-sm sm:text-base">축하합니다! 개념 노트 잠금이 해제되었습니다.</h2>
+                        <p class="text-xs text-emerald-700">학습지(교과서 58쪽 연계)의 모든 핵심 개념과 예시를 자유롭게 복습하세요.</p>
+                    </div>
+                </div>
+                <span class="hidden sm:inline-block px-3 py-1 bg-emerald-600 text-white text-xs font-bold rounded-xl">학습 완료 인증</span>
+            </div>
+
+            <!-- 학습지 정리 본문 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-800 text-white px-6 py-4 flex justify-between items-center">
+                    <h3 class="font-bold text-base sm:text-lg">📄 화언 학습지 핵심 요약 정리 (부정·인용 표현)</h3>
+                    <span class="text-xs bg-slate-700 px-2.5 py-1 rounded-lg text-slate-300">교과서 58쪽</span>
+                </div>
+
+                <div class="p-6 space-y-8 text-sm sm:text-base leading-relaxed">
+                    <!-- 1. '안'·'못' 부정문의 제약 -->
+                    <div>
+                        <h4 class="text-base sm:text-lg font-extrabold text-indigo-700 border-b-2 border-indigo-100 pb-2 mb-3">1. '안'·'못' 부정문의 제약</h4>
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+                                        <th class="p-3 font-bold w-1/5">구분</th>
+                                        <th class="p-3 font-bold w-2/5">제약 조건</th>
+                                        <th class="p-3 font-bold w-2/5">예시</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200">
+                                    <tr>
+                                        <td class="p-3 font-bold text-indigo-600 bg-indigo-50/30">'안' 부정문</td>
+                                        <td class="p-3">'깨닫다', '견디다'처럼 주체의 <strong>의지</strong>나 <strong>의도</strong>가 작용할 수 없는 동사에는 쓸 수 없음.</td>
+                                        <td class="p-3">
+                                            <p class="text-rose-600">나는 그 사실을 안 깨달았다. (×)</p>
+                                            <p class="text-emerald-700 font-medium">나는 그 사실을 깨닫지 못했다. (○)</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-bold text-indigo-600 bg-indigo-50/30" rowspan="2">'못' 부정문</td>
+                                        <td class="p-3">서술어가 <strong>형용사</strong>일 때 원칙적으로 쓸 수 없음.</td>
+                                        <td class="p-3 text-rose-600">나는 못 행복하다. (×)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3">기대에 못 미침을 드러낼 때는 <strong>긴</strong> 부정문 형태로만 가능함.</td>
+                                        <td class="p-3 text-emerald-700 font-medium">나는 행복하지 못하다. (○)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 2. 부정문과만 어울리는 말 -->
+                    <div>
+                        <h4 class="text-base sm:text-lg font-extrabold text-indigo-700 border-b-2 border-indigo-100 pb-2 mb-3">2. 부정문과만 어울리는 말</h4>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                            <p>• 긍정문과는 결합하지 않고 부정문과만 결합하는 특성을 가진 말 → <strong class="text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">부정 극어</strong></p>
+                            <p class="text-xs sm:text-sm text-slate-600">• 예) <strong>결코, 별로, 전혀, 아무도</strong></p>
+                            <div class="pl-3 border-l-2 border-indigo-300 text-xs sm:text-sm space-y-1 mt-2">
+                                <p class="text-emerald-700">그녀는 <strong>별로</strong> 예쁘지 않다. (○)</p>
+                                <p class="text-rose-600">그녀는 <strong>별로</strong> 예쁘다. (×)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. 부정문의 중의성 해소 -->
+                    <div>
+                        <h4 class="text-base sm:text-lg font-extrabold text-indigo-700 border-b-2 border-indigo-100 pb-2 mb-3">3. 부정문의 중의성 해소</h4>
+                        <div class="space-y-4">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <p class="font-bold text-slate-800 mb-2">(1) 부정의 대상에 따른 중의성</p>
+                                <p class="bg-white p-2.5 rounded-lg border border-slate-200 font-medium text-center mb-2">"나는 점심으로 빵을 먹지 않았다."</p>
+                                <ul class="text-xs sm:text-sm text-slate-600 space-y-1 mb-3">
+                                    <li>- 해석 1: 점심으로 빵을 먹은 것이 내가 아니다.</li>
+                                    <li>- 해석 2: 내가 점심으로 먹은 것은 빵이 아니다.</li>
+                                    <li>- 해석 3: 내가 빵을 먹었지만, 점심으로 먹은 것은 아니다.</li>
+                                </ul>
+                                <p class="text-xs sm:text-sm bg-indigo-50 text-indigo-900 p-3 rounded-lg">
+                                    👉 <strong>해소 방법:</strong> 부정의 대상에 <strong class="underline">강세</strong>를 두거나 <strong class="underline">보조사</strong> '은/는'을 결합하여 해소할 수 있다.<br>
+                                    <span class="text-slate-600 text-xs">(예: 나는 점심으로 <strong>빵은</strong> 먹지 않았다. / 나는 <strong>점심으로는</strong> 빵을 먹지 않았다.)</span>
+                                </p>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <p class="font-bold text-slate-800 mb-2">(2) '다, 모두, 전부' 등의 부사와 부정 표현이 어울릴 때 생기는 중의성</p>
+                                <p class="bg-white p-2.5 rounded-lg border border-slate-200 font-medium text-center mb-2">"친구들이 다 안 왔어요."</p>
+                                <ul class="text-xs sm:text-sm text-slate-600 space-y-1 mb-3">
+                                    <li>- 해석 1: 친구들이 한 명도 안 왔어요. (<strong>전체</strong> 부정)</li>
+                                    <li>- 해석 2: 친구들이 다는 안 왔어요. (<strong>부분</strong> 부정)</li>
+                                </ul>
+                                <p class="text-xs sm:text-sm bg-indigo-50 text-indigo-900 p-3 rounded-lg">
+                                    👉 <strong>해소 방법:</strong> <strong class="underline">보조사</strong> '은/는, 도, 만'을 넣거나, 강세를 주거나, <strong class="underline">부정 극어</strong>를 사용하면 해소된다.<br>
+                                    <span class="text-slate-600 text-xs">(예: 친구들이 <strong>다는</strong> 안 왔어요. / 친구들이 <strong>아무도</strong> 안 왔어요.)</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4 & 5. 인용 표현 -->
+                    <div>
+                        <h4 class="text-base sm:text-lg font-extrabold text-indigo-700 border-b-2 border-indigo-100 pb-2 mb-3">4. 직접 인용과 간접 인용의 전환</h4>
+                        <p class="mb-3 text-xs sm:text-sm bg-amber-50 border border-amber-200 p-3 rounded-xl text-amber-900">
+                            • <strong>직접 인용:</strong> 인용하는 말에 <strong class="underline">큰따옴표(“ ”)</strong>나 <strong class="underline">작은따옴표(‘ ’)</strong>를 붙이고, 뒤에 인용격 조사 <strong>'라고'</strong>를 붙임.<br>
+                            • <strong>간접 인용의 기준:</strong> 화자가 발화하는 현재 <strong class="underline">시점</strong>과 <strong class="underline">위치</strong>가 기준이 되며, 조사 <strong>'고'</strong>를 붙임.
+                        </p>
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+                                        <th class="p-3 font-bold w-1/4">달라지는 요소</th>
+                                        <th class="p-3 font-bold w-3/4">직접 인용 → 간접 인용 변환 예시</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200">
+                                    <tr>
+                                        <td class="p-3 font-bold text-indigo-600">① 시간 표현</td>
+                                        <td class="p-3">그는 어제 놀다가 "<strong>내일</strong> 시험이 있어."라고 말했다.<br>→ 그는 어제 놀다가 <strong class="text-emerald-700">오늘</strong> 시험이 있다고 말했다.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-bold text-indigo-600">② 높임 표현</td>
+                                        <td class="p-3">새라는 "교수님, 곧 <strong>제출하겠습니다.</strong>"라고 전했다.<br>→ 새라는 교수님께 곧 <strong class="text-emerald-700">제출하겠다고</strong> 전했다.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-bold text-indigo-600">③ 종결 표현</td>
+                                        <td class="p-3">선생님이 학생에게 "발표가 <strong>완벽하구나!</strong>"라고 했다.<br>→ 선생님이 학생에게 발표가 <strong class="text-emerald-700">완벽하다고</strong> 했다.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-bold text-indigo-600">④ 지시 표현</td>
+                                        <td class="p-3">혁이는 "<strong>이곳</strong>이 학생회관이야."라고 소개했다.<br>→ 혁이는 <strong class="text-emerald-700">그곳</strong>이 학생회관이라고 소개했다.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-bold text-indigo-600">⑤ 대명사 (재귀화)</td>
+                                        <td class="p-3">윤희는 "<strong>저</strong>도 원하는 대학에 갔어요."라고 자랑했다.<br>→ 윤희는 <strong class="text-emerald-700">자기</strong>도 원하는 대학에 갔다고 자랑했다.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 심화 개념 확인 -->
+                    <div class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
+                        <h5 class="font-bold text-indigo-900 text-sm mb-2">📌 개념 연습 문제 및 심화 포인트</h5>
+                        <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5">
+                            <li>• <strong>'말다' 부정문:</strong> 명령문이나 청유문에만 쓰인다. ('못' 부정문은 평서문·의문문 등에 쓰임)</li>
+                            <li>• <strong>'알다/깨닫다/견디다'의 부정:</strong> 주체의 의지가 작용하기 어려우므로 '안' 부정문 대신 '못' 부정문을 사용한다.</li>
+                            <li>• <strong>의미에 따른 부정(화자의 태도):</strong> 의지 부정('안'), 능력 부정('못'), 단순 부정(객관적 사실: "비가 안 내린다").</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="text-center py-6 text-xs text-slate-400 border-t border-slate-200 bg-white mt-auto">
+        화법과 언어 학습 지원 웹 앱 · 스스로 빈칸을 추론하며 개념을 완성해 보세요!
+    </footer>
+
+    <script>
+        // 15개의 핵심 빈칸 추론 문항 데이터 (총 100점 만점, 14문항 이상 정답 시 93점 -> 90점 이상 통과)
+        const quizData = [
+            {
+                id: 1,
+                category: "1. '안'·'못' 부정문의 제약",
+                context: "'깨닫다', '견디다'처럼 주체의 [ 빈칸 ]나 의도가 작용할 수 없는 동사에는 '안' 부정문을 쓸 수 없다.",
+                placeholder: "두 글자 입력 (예: 마음)",
+                answers: ["의지"],
+                hint: "사람이 스스로 하고자 하는 마음이나 결심을 뜻하는 두 글자 단어입니다. (ㅇㅈ)"
+            },
+            {
+                id: 2,
+                category: "1. '안'·'못' 부정문의 제약",
+                context: "'못' 부정문은 서술어가 [ 빈칸 ]일 때 원칙적으로 쓸 수 없다. (예: 나는 못 행복하다. ×)",
+                placeholder: "품사 이름 입력 (세 글자)",
+                answers: ["형용사"],
+                hint: "사물의 성질이나 상태를 나타내는 품사입니다. ('예쁘다', '행복하다' 등)"
+            },
+            {
+                id: 3,
+                category: "1. '안'·'못' 부정문의 제약",
+                context: "형용사 서술어라도 기대에 못 미침을 드러낼 때는 '[ 빈칸 ] 부정문' 형태로만 가능하다. (예: 나는 행복하지 못하다. ○)",
+                placeholder: "한 글자 입력 (짧은 / 긴)",
+                answers: ["긴"],
+                hint: "'안/못'을 앞에 붙이는 '짧은 부정문'과 반대되는 개념으로, '-지 않다 / -지 못하다' 형태를 말합니다."
+            },
+            {
+                id: 4,
+                category: "2. 부정문과만 어울리는 말",
+                context: "긍정문과는 결합하지 않고 부정문과만 결합하는 특성을 가진 말을 '[ 빈칸 ]'(이)라고 한다. (예: 결코, 별로, 전혀, 아무도)",
+                placeholder: "네 글자 띄어쓰기 없이/포함 입력",
+                answers: ["부정극어", "부정 극어"],
+                hint: "부정 표현과 극단적으로 잘 어울리는 말이라는 뜻의 문법 용어입니다. (ㅂㅈ ㄱㅇ)"
+            },
+            {
+                id: 5,
+                category: "3. 부정문의 중의성 해소",
+                context: "'나는 점심으로 빵을 먹지 않았다.'의 중의성을 해소하려면 부정의 대상에 [ 빈칸 ]를 두거나 보조사 '은/는'을 결합한다.",
+                placeholder: "두 글자 입력",
+                answers: ["강세"],
+                hint: "말할 때 특정 단어를 더 세게 발음하여 강조하는 것을 무엇이라고 할까요? (ㄱㅅ)"
+            },
+            {
+                id: 6,
+                category: "3. 부정문의 중의성 해소",
+                context: "중의성 해소를 위해 부정의 대상 뒤에 결합하는 '은/는, 도, 만'과 같은 문법 요소를 [ 빈칸 ](이)라고 한다.",
+                placeholder: "세 글자 입력",
+                answers: ["보조사"],
+                hint: "앞말에 특별한 뜻을 더해 주는 조사의 한 갈래입니다. (ㅂㅈㅅ)"
+            },
+            {
+                id: 7,
+                category: "3. 부정문의 중의성 해소",
+                context: "'친구들이 다 안 왔어요.'가 '한 명도 안 왔다'로 해석되면 [ 빈칸 ] 부정, '다는 안 왔다'로 해석되면 부분 부정이다.",
+                placeholder: "두 글자 입력",
+                answers: ["전체"],
+                hint: "'부분'의 반대말로, 모두 다를 가리키는 두 글자 단어입니다. (ㅈㅊ)"
+            },
+            {
+                id: 8,
+                category: "4. 직접 인용의 문장 부호",
+                context: "직접 인용을 할 때는 인용하는 말에 [ 빈칸 ](“ ”)나 작은따옴표(‘ ’)를 붙이고, 뒤에 인용격 조사 '라고'를 붙인다.",
+                placeholder: "네 글자 입력",
+                answers: ["큰따옴표"],
+                hint: "문장 부호 “ ”의 이름입니다. 작은따옴표와 짝을 이룹니다."
+            },
+            {
+                id: 9,
+                category: "5. 간접 인용으로 바꿀 때 달라지는 것",
+                context: "간접 인용으로 바꿀 때는 화자가 발화하는 현재 [ 빈칸 ]과 위치가 기준이 된다.",
+                placeholder: "두 글자 입력",
+                answers: ["시점"],
+                hint: "말을 하는 '때(시간적 기준)'를 가리키는 두 글자 단어입니다. (ㅅㅈ)"
+            },
+            {
+                id: 10,
+                category: "5. 간접 인용 변환 (① 시간 표현)",
+                context: "그는 어제 놀다가 \"내일 시험이 있어.\"라고 말했다. → 그는 어제 놀다가 [ 빈칸 ] 시험이 있다고 말했다.",
+                placeholder: "시간 표현 두 글자",
+                answers: ["오늘"],
+                hint: "화자가 어제 말할 때의 '내일'은, 화자가 발화하는 현재 기준으로는 언제일까요?"
+            },
+            {
+                id: 11,
+                category: "5. 간접 인용 변환 (② 높임 표현)",
+                context: "새라는 \"교수님, 곧 제출하겠습니다.\"라고 전했다. → 새라는 교수님께 곧 [ 빈칸 ] 전했다.",
+                placeholder: "인용격 조사 '고'까지 포함하여 입력",
+                answers: ["제출하겠다고"],
+                hint: "간접 인용에서는 상대 높임법('-습니다')이 사라지고 평서형 어미 '-다'에 조사 '고'가 붙습니다. (제출하겠 + 다 + 고)"
+            },
+            {
+                id: 12,
+                category: "5. 간접 인용 변환 (③ 종결 표현)",
+                context: "선생님이 학생에게 \"발표가 완벽하구나!\"라고 했다. → 선생님이 학생에게 발표가 [ 빈칸 ] 했다.",
+                placeholder: "인용격 조사 '고'까지 포함하여 입력",
+                answers: ["완벽하다고"],
+                hint: "감탄형 종결 어미 '-구나'가 간접 인용에서는 평서형 어미 '-다'와 조사 '고'로 바뀝니다."
+            },
+            {
+                id: 13,
+                category: "5. 간접 인용 변환 (④ 지시 표현)",
+                context: "혁이는 \"이곳이 학생회관이야.\"라고 소개했다. → 혁이는 [ 빈칸 ]이 학생회관이라고 소개했다.",
+                placeholder: "지시 대명사 두 글자",
+                answers: ["그곳"],
+                hint: "직접 인용의 '이곳'이 화자의 현재 위치에서 떨어진 곳을 가리키게 되므로 무엇으로 바뀔까요?"
+            },
+            {
+                id: 14,
+                category: "5. 간접 인용 변환 (⑤ 대명사 재귀화)",
+                context: "윤희는 \"저도 원하는 대학에 갔어요.\"라고 자랑했다. → 윤희는 [ 빈칸 ]도 원하는 대학에 갔다고 자랑했다.",
+                placeholder: "재귀칭 대명사 두 글자",
+                answers: ["자기"],
+                hint: "앞에 나온 주어(윤희)를 다시 가리킬 때 쓰는 3인칭 재귀 대명사입니다. (ㅈㄱ)"
+            },
+            {
+                id: 15,
+                category: "개념 연습 문제 (O/X)",
+                context: "'못' 부정문과 '말다' 부정문은 모두 명령문이나 청유문에만 쓰인다. (O 또는 X 입력)",
+                placeholder: "O 또는 X 입력",
+                answers: ["X", "x"],
+                hint: "'말다' 부정문은 명령문·청유문에 쓰이지만, '못' 부정문은 '나는 밥을 못 먹었다'처럼 평서문에도 자연스럽게 쓰입니다!"
+            }
+        ];
+
+        // 상태 관리 객체
+        let state = {
+            solved: new Array(quizData.length).fill(false),
+            userInputs: new Array(quizData.length).fill(""),
+            hintsShown: new Array(quizData.length).fill(false),
+            isUnlocked: false
+        };
+
+        // 초기화 및 렌더링
+        window.onload = function() {
+            renderQuiz();
+            updateScoreUI();
+        };
+
+        // 퀴즈 카드 렌더링 함수
+        function renderQuiz() {
+            const container = document.getElementById("quiz-container");
+            container.innerHTML = "";
+
+            quizData.forEach((item, index) => {
+                const isSolved = state.solved[index];
+                const showHint = state.hintsShown[index];
+
+                // 문맥 내 '[ 빈칸 ]' 하이라이트 처리
+                const formattedContext = item.context.replace(
+                    "[ 빈칸 ]",
+                    isSolved
+                        ? `<span class="inline-block px-2.5 py-0.5 mx-1 bg-emerald-100 text-emerald-800 font-extrabold rounded-lg border border-emerald-300">${item.answers[0]}</span>`
+                        : `<span class="inline-block px-3 py-0.5 mx-1 bg-indigo-100 text-indigo-700 font-bold rounded-lg border border-dashed border-indigo-400">?</span>`
+                );
+
+                const card = document.createElement("div");
+                card.id = `quiz-card-${index}`;
+                card.className = `bg-white p-5 rounded-2xl shadow-sm border transition-all ${
+                    isSolved ? "border-emerald-300 bg-emerald-50/20" : "border-slate-200 hover:border-indigo-200"
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-2 mb-2.5">
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${
+                            isSolved ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+                        }">
+                            문항 ${item.id} · ${item.category}
+                        </span>
+                        <span class="text-xs font-bold ${isSolved ? "text-emerald-600" : "text-slate-400"}">
+                            ${isSolved ? "✅ 정답 확인됨 (+6.7점)" : "미해결"}
+                        </span>
+                    </div>
+
+                    <p class="text-sm sm:text-base font-medium text-slate-800 leading-relaxed mb-4">
+                        ${formattedContext}
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input 
+                            type="text" 
+                            id="input-${index}" 
+                            value="${state.userInputs[index]}"
+                            placeholder="${item.placeholder}"
+                            ${isSolved ? "disabled" : ""}
+                            onkeypress="if(event.key === 'Enter') checkAnswer(${index})"
+                            class="flex-1 px-4 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 transition ${
+                                isSolved 
+                                ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-bold cursor-not-allowed" 
+                                : "bg-slate-50 border-slate-300 focus:bg-white focus:ring-indigo-500 focus:border-indigo-500"
+                            }"
+                        />
+                        <button 
+                            onclick="checkAnswer(${index})"
+                            ${isSolved ? "disabled" : ""}
+                            class="px-5 py-2.5 rounded-xl font-bold text-sm transition shrink-0 ${
+                                isSolved
+                                ? "bg-emerald-600 text-white cursor-default"
+                                : "bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white shadow-sm"
+                            }"
+                        >
+                            ${isSolved ? "완료" : "정답 확인"}
+                        </button>
+                    </div>
+
+                    <!-- 힌트 영역 (틀렸을 때만 표시됨) -->
+                    <div id="hint-box-${index}" class="${showHint && !isSolved ? "block" : "hidden"} mt-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs sm:text-sm text-amber-900 flex items-start gap-2.5 fade-in">
+                        <span class="text-base shrink-0">💡</span>
+                        <div>
+                            <span class="font-bold block text-amber-800 mb-0.5">다시 생각해 볼까요? (힌트)</span>
+                            <span>${item.hint}</span>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // 정답 검증 함수 (바로 정답을 알려주지 않고 틀리면 힌트 제공)
+        function checkAnswer(index) {
+            if (state.solved[index]) return;
+
+            const inputEl = document.getElementById(`input-${index}`);
+            const rawValue = inputEl.value.trim();
+            state.userInputs[index] = rawValue;
+
+            if (!rawValue) {
+                showToast("빈칸에 들어갈 말을 먼저 입력해 주세요!", "✏️");
+                inputEl.focus();
+                return;
+            }
+
+            // 공백 제거 후 비교하여 유연하게 채점
+            const normalizedInput = rawValue.replace(/\s+/g, "").toLowerCase();
+            const isCorrect = quizData[index].answers.some(
+                ans => ans.replace(/\s+/g, "").toLowerCase() === normalizedInput
+            );
+
+            if (isCorrect) {
+                state.solved[index] = true;
+                state.hintsShown[index] = false;
+                showToast(`정답입니다! (문항 ${index + 1} 해결)`, "🎉");
+                renderQuiz();
+                updateScoreUI();
+            } else {
+                // 오답 시 정답을 공개하지 않고 힌트 활성화
+                state.hintsShown[index] = true;
+                const card = document.getElementById(`quiz-card-${index}`);
+                const hintBox = document.getElementById(`hint-box-${index}`);
+                
+                hintBox.classList.remove("hidden");
+                card.classList.remove("shake");
+                void card.offsetWidth; // 리플로우 트리거
+                card.classList.add("shake");
+                
+                showToast("아쉽네요! 아래 힌트를 읽고 다시 추론해 보세요.", "🤔");
+                inputEl.focus();
+            }
+        }
+
+        // 점수 계산 및 잠금 해제 UI 업데이트
+        function updateScoreUI() {
+            const solvedCount = state.solved.filter(Boolean).length;
+            const totalCount = quizData.length;
+            // 15문항 기준 100점 환산 (14문항 정답 시 93점 -> 90점 이상 통과)
+            const score = Math.round((solvedCount / totalCount) * 100);
+
+            document.getElementById("score-display").innerText = `${score}점`;
+            document.getElementById("progress-text").innerText = `${totalCount}개의 빈칸 중 ${solvedCount}개를 해결했습니다. (현재 ${score}점)`;
+
+            const unlockBadge = document.getElementById("unlock-badge");
+            const tab1Icon = document.getElementById("tab-1-icon");
+            const goTab1Btn = document.getElementById("go-tab1-btn");
+
+            if (score >= 90) {
+                if (!state.isUnlocked) {
+                    state.isUnlocked = true;
+                    showToast("축하합니다! 90점을 돌파하여 [탭 1. 전체 학습 내용 정리]가 열렸습니다!", "🔓");
+                }
+                unlockBadge.className = "flex items-center gap-1.5 bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all";
+                unlockBadge.innerHTML = `<span>🔓</span><span>개념 노트 열림!</span>`;
+                tab1Icon.innerText = "📖";
+
+                goTab1Btn.className = "px-5 py-3 bg-white text-indigo-700 hover:bg-indigo-50 font-bold text-sm rounded-xl shadow-md cursor-pointer transition flex items-center gap-2";
+                goTab1Btn.innerHTML = `<span>📖 전체 학습 내용 보러가기 →</span>`;
+            } else {
+                state.isUnlocked = false;
+                unlockBadge.className = "flex items-center gap-1.5 bg-slate-800/80 text-slate-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all";
+                unlockBadge.innerHTML = `<span>🔒</span><span>개념 노트 잠김</span>`;
+                tab1Icon.innerText = "🔒";
+
+                goTab1Btn.className = "px-5 py-3 bg-white/20 text-white/70 font-bold text-sm rounded-xl cursor-not-allowed transition flex items-center gap-2";
+                goTab1Btn.innerHTML = `<span>🔒 90점 달성 시 개념 노트 열림</span>`;
+            }
+        }
+
+        // 탭 전환 제어 함수
+        function switchTab(tabNumber) {
+            if (tabNumber === 1 && !state.isUnlocked) {
+                const solvedCount = state.solved.filter(Boolean).length;
+                const score = Math.round((solvedCount / quizData.length) * 100);
+                showToast(`현재 ${score}점입니다. 탭 2에서 90점 이상을 달성해야 개념 노트가 열립니다!`, "🔒");
+                return;
+            }
+
+            const tab1Content = document.getElementById("tab-content-1");
+            const tab2Content = document.getElementById("tab-content-2");
+            const tab1Btn = document.getElementById("tab-btn-1");
+            const tab2Btn = document.getElementById("tab-btn-2");
+
+            if (tabNumber === 1) {
+                tab1Content.classList.remove("hidden");
+                tab2Content.classList.add("hidden");
+
+                tab1Btn.className = "flex-1 sm:flex-none px-5 py-3 rounded-t-xl font-bold text-sm bg-slate-50 text-indigo-700 shadow-sm transition-all flex items-center justify-center gap-2";
+                tab2Btn.className = "flex-1 sm:flex-none px-5 py-3 rounded-t-xl font-bold text-sm bg-indigo-700/60 text-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2";
+            } else {
+                tab2Content.classList.remove("hidden");
+                tab1Content.classList.add("hidden");
+
+                tab2Btn.className = "flex-1 sm:flex-none px-5 py-3 rounded-t-xl font-bold text-sm bg-slate-50 text-indigo-700 shadow-sm transition-all flex items-center justify-center gap-2";
+                tab1Btn.className = "flex-1 sm:flex-none px-5 py-3 rounded-t-xl font-bold text-sm bg-indigo-700/60 text-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2";
+            }
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        // 퀴즈 초기화 함수
+        function resetQuiz() {
+            state.solved = new Array(quizData.length).fill(false);
+            state.userInputs = new Array(quizData.length).fill("");
+            state.hintsShown = new Array(quizData.length).fill(false);
+            state.isUnlocked = false;
+            
+            renderQuiz();
+            updateScoreUI();
+            switchTab(2);
+            showToast("퀴즈가 초기화되었습니다. 처음부터 다시 도전해 보세요!", "🔄");
+        }
+
+        // 토스트 메시지 출력 (alert 대체)
+        let toastTimer = null;
+        function showToast(message, icon = "💡") {
+            const toastBox = document.getElementById("toast-box");
+            document.getElementById("toast-msg").innerText = message;
+            document.getElementById("toast-icon").innerText = icon;
+
+            toastBox.classList.remove("hidden");
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toastBox.classList.add("hidden");
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
